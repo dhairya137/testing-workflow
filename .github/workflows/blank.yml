@@ -2,13 +2,101 @@ name: Test Runner
 on: workflow_dispatch  # Allows manual trigger
 
 jobs:
-  test:
-    runs-on: self-hosted  # Use your self-hosted runner
+  test-environment:
+    runs-on: self-hosted  # This will use your custom runner
+    
     steps:
-      - uses: actions/checkout@v3
-      - name: Test Runner
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Test Docker Installation
         run: |
-          echo "Runner is working!"
-          echo "Running on host: $(hostname)"
-          echo "OS Information:"
-          cat /etc/os-release
+          echo "🐳 Testing Docker..."
+          docker --version
+          docker info
+          echo "Testing Docker functionality..."
+          docker run --rm hello-world
+
+      - name: Test Node.js Installation
+        run: |
+          echo "📦 Testing Node.js..."
+          node --version
+          npm --version
+          # Test npm functionality
+          npm init -y
+          npm install moment
+          node -e "console.log(require('moment')().format('YYYY-MM-DD'))"
+
+      - name: Test Python Installation
+        run: |
+          echo "🐍 Testing Python..."
+          python3 --version
+          pip3 --version
+          # Test pip functionality
+          pip3 install requests
+          python3 -c "import requests; print(requests.__version__)"
+
+      - name: Test AWS CLI
+        run: |
+          echo "☁️ Testing AWS CLI..."
+          aws --version
+          # Test AWS configuration
+          aws sts get-caller-identity
+
+      - name: Test Azure CLI
+        run: |
+          echo "☁️ Testing Azure CLI..."
+          az --version
+
+      - name: Test Terraform Installation
+        run: |
+          echo "🏗️ Testing Terraform..."
+          terraform --version
+
+      - name: Test Additional Tools
+        run: |
+          echo "🔧 Testing additional tools..."
+          echo "Git version:"
+          git --version
+          echo "Curl version:"
+          curl --version
+          echo "Wget version:"
+          wget --version
+
+      - name: Test Docker Build and Run
+        run: |
+          echo "🏗️ Testing Docker build and run..."
+          # Create a test Dockerfile
+          cat << EOF > Dockerfile
+          FROM nginx:alpine
+          RUN echo '<h1>Hello from AMI Runner!</h1>' > /usr/share/nginx/html/index.html
+          EOF
+          
+          # Build and test
+          docker build -t test-app .
+          docker run -d --name test-container -p 8080:80 test-app
+          
+          # Test the container
+          sleep 5
+          curl http://localhost:8080
+          
+          # Cleanup
+          docker stop test-container
+          docker rm test-container
+          docker rmi test-app
+
+      - name: Environment Summary
+        run: |
+          echo "✅ Environment Test Summary"
+          echo "=========================="
+          echo "System Information:"
+          uname -a
+          echo "------------------------"
+          echo "Disk Space:"
+          df -h
+          echo "------------------------"
+          echo "Memory Info:"
+          free -h
+          echo "------------------------"
+          echo "CPU Info:"
+          lscpu | grep "Model name"
