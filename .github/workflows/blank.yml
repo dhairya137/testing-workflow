@@ -9,13 +9,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup Docker permissions
+        run: |
+          # Ensure docker socket has right permissions
+          sudo chmod 666 /var/run/docker.sock
+          # Verify docker can run without sudo
+          docker version
+
       - name: Test Docker Installation
         run: |
           echo "🐳 Testing Docker..."
-          docker --version
+          docker version
           docker info
           echo "Testing Docker functionality..."
-          docker run --rm hello-world
+          # Test with explicit socket path
+          DOCKER_HOST="unix:///var/run/docker.sock" docker run --rm hello-world
 
       - name: Test Node.js Installation
         run: |
